@@ -1,14 +1,19 @@
 from services.BaseFetcher import BaseFetcher
-
+from services.config import Config
 
 class EntrylistFetcher(BaseFetcher):
+
+    def __init__(self):
+        self.config = Config()
+        super()
+
     @property
     def url(self) -> str:
-        return "https://www.masters.com/en_US/cms/feeds/players/2025/players.json"
+        return self.config.endpoints['entrylist']
 
     @property
     def topic_template(self) -> str:
-        return "masters.Entrylist*2025.{player_id}"
+        return self.config.topics['entrylist']
 
     def transform(self, player: dict) -> dict:
         return {
