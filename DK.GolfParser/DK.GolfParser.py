@@ -8,6 +8,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from services.config import Config
 from services.logger import setup_logging
+from services.health_check import HealthCheckServer
 from services.entrilist import EntrylistFetcher
 # from datadog_setup import setup_datadog 
 
@@ -17,6 +18,7 @@ class GolfParserApp:
     """Main application class for the golf parser service"""
     def __init__(self):
         self.config = Config()
+        self.health_server = None
         self.running = False
         
     async def start(self):
@@ -27,6 +29,11 @@ class GolfParserApp:
             # Setup logging
             setup_logging(self.config.log_level)
             
+            # Start health check server
+            self.health_server = HealthCheckServer(self.config.health_port)
+            await self.health_server.start()
+
+            self.running = True
             EntrylistFetcher().process()
             
         except Exception as e:
