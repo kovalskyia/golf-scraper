@@ -22,6 +22,12 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="DK.GolfParser.py" />
+    <Compile Include="Services\BaseFetcher.py" />
+    <Compile Include="Services\Entrilist.py" />
+    <Compile Include="Services\__init__.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Services\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
