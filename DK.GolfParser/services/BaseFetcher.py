@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 import requests
 # from datadog import statsd
-import logging
-# from rabbitmq import publish
+# import logging
+# from Services.rabbitmq import publish
 
 
 class BaseFetcher(ABC):
@@ -17,30 +17,33 @@ class BaseFetcher(ABC):
         ...
 
     @abstractmethod
+    def fetch(self) -> list[dict]:
+        ...
+
+    @abstractmethod
     def transform(self, item: dict) -> dict:
         ...
 
-    def fetch(self) -> list[dict]:
-        logging.info(f"Fetching from: {self.url}")
+    def _safe_request(self):
         headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/115.0 Safari/537.36"
-}
-        response = requests.get(self.url,headers=headers, timeout=100)
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+        }
+        response = requests.get(self.url, headers=headers, timeout=10)
         response.raise_for_status()
-        return response.json().get("players", [])
-
-    def publish(self, transformed: dict):
-        topic = self.topic_template.format(**transformed)
-        publish(topic, transformed)
-        statsd.increment(f"scraper.{self.__class__.__name__.lower()}.processed")
-        logging.info(f"Published: {topic}")
+        return response
 
     def process(self):
         try:
             items = self.fetch()
             for item in items:
                 transformed = self.transform(item)
-                # self.publish(transformed)
+                self._publish(transformed)
         except Exception as e:
-            # statsd.increment(f"scraper.{self.__class__.__name__.lower()}.failed")
+            statsd.increment(f"scraper.{self.__class__.__name__.lower()}.failed")
             logging.error(f"{self.__class__.__name__} error: {e}")
+
+    def _publish(self, item: dict):
+        topic = self.topic_template.format(**item)
+        publish(topic, item)
+        statsd.increment(f"scraper.{self.__class__.__name__.lower()}.processed")
+        logging.info(f"Published: {topic}")
