@@ -16,14 +16,12 @@ from services.leaderboard import LeaderboardFetcher
 logger = logging.getLogger(__name__)
 
 class GolfParserApp:
-    """Main application class for the golf parser service"""
     def __init__(self):
         self.config = Config()
         self.health_server = None
         self.running = False
         
     async def start(self):
-        """Start the golf parser application"""
         try:
             logger.info("Starting Golf Parser Application")
             
@@ -44,14 +42,12 @@ class GolfParserApp:
             sys.exit(1)
     
     async def shutdown(self):
-        """Gracefully shutdown the application"""
         logger.info("Shutting down Golf Parser Application")
         self.running = False
         
         logger.info("Application shutdown complete")
 
 async def main():
-    """Main entry point"""
     app = GolfParserApp()
     
     # Setup signal handlers

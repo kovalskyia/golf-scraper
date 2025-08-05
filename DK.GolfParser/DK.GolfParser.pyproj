@@ -23,8 +23,12 @@
   <ItemGroup>
     <Compile Include="DK.GolfParser.py" />
     <Compile Include="Services\BaseFetcher.py" />
-    <Compile Include="Services\EntrylistFetcher.py" />
     <Compile Include="Services\TeetimesFetcher.py" />
+    <Compile Include="Services\EntrylistFetcher.py" />
+    <Compile Include="Services\config.py" />
+    <Compile Include="Services\health_check.py" />
+    <Compile Include="Services\leaderboard.py" />
+    <Compile Include="Services\logger.py" />
     <Compile Include="Services\__init__.py" />
   </ItemGroup>
   <ItemGroup>

@@ -1,7 +1,3 @@
-"""
-Health check server for monitoring application status
-"""
-
 import asyncio
 import json
 from aiohttp import web
@@ -11,10 +7,7 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
-
 class HealthCheckServer:
-    """HTTP server for health checks and monitoring"""
-    
     def __init__(self, port: int = 8000):
         self.port = port
         self.app = web.Application()
@@ -27,7 +20,6 @@ class HealthCheckServer:
         self.app.router.add_get('/', self.root_handler)
     
     async def start(self) -> None:
-        """Start the health check server"""
         try:
             self.runner = web.AppRunner(self.app)
             await self.runner.setup()
@@ -42,27 +34,22 @@ class HealthCheckServer:
             raise
     
     async def shutdown(self) -> None:
-        """Shutdown the health check server"""
         if self.runner:
             await self.runner.cleanup()
             logger.info("Health check server shutdown complete")
     
     async def health_handler(self, request: web.Request) -> web.Response:
-        """Health check endpoint"""
         health_status = {
             'status': 'healthy',
-            'service': 'golf-scraper',
+            'service': 'golf-parser',
             'timestamp': asyncio.get_event_loop().time()
         }
         
         return web.json_response(health_status, status=200)
     
     async def metrics_handler(self, request: web.Request) -> web.Response:
-        """Metrics endpoint for Prometheus-style metrics"""
-        # This would typically return Prometheus metrics
-        # For now, return a simple JSON response
         metrics_data = {
-            'service': 'golf-scraper',
+            'service': 'golf-parser',
             'metrics': {
                 'status': 'operational'
             }
@@ -71,11 +58,10 @@ class HealthCheckServer:
         return web.json_response(metrics_data, status=200)
     
     async def root_handler(self, request: web.Request) -> web.Response:
-        """Root endpoint with service information"""
         service_info = {
-            'service': 'Golf Scraper',
+            'service': 'Golf Parser',
             'version': '1.0.0',
-            'description': 'Masters Tournament data scraper',
+            'description': 'Masters Tournament data parser',
             'endpoints': {
                 'health': '/health',
                 'metrics': '/metrics'

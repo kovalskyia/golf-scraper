@@ -8,7 +8,6 @@ from services.config import Config
 logger = structlog.get_logger(__name__)
 
 class LeaderboardFetcher(BaseFetcher):
-
     def __init__(self):
         self.config = Config()
         super()
@@ -22,7 +21,6 @@ class LeaderboardFetcher(BaseFetcher):
         return self.config.topics['leaderboard']
 
     def _process_thru(self, thru_value: str) -> int:
-        """Process thru value - 'f' means finished (18), otherwise convert to int"""
         if thru_value == 'f':
             return 18
         try:

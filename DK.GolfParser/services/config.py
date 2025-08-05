@@ -1,14 +1,7 @@
-"""
-Configuration management for the golf scraper
-"""
-
 import os
 from typing import Optional
 
-
 class Config:
-    """Application configuration"""
-    
     def __init__(self):
         # RabbitMQ Configuration
         self.rabbitmq_host = os.getenv('RABBITMQ_HOST', 'localhost')

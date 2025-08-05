@@ -1,7 +1,3 @@
-"""
-Logging configuration for the golf parser
-"""
-
 import logging
 import logging.handlers
 import os
@@ -10,10 +6,7 @@ from typing import Optional
 
 import structlog
 
-
 def setup_logging(log_level: str = 'INFO') -> None:
-    """Setup structured logging with Datadog integration"""
-    
     # Configure structlog
     structlog.configure(
         processors=[
@@ -64,5 +57,4 @@ def setup_logging(log_level: str = 'INFO') -> None:
 
 
 def get_logger(name: str) -> structlog.BoundLogger:
-    """Get a structured logger instance"""
     return structlog.get_logger(name) 
