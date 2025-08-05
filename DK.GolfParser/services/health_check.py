@@ -41,7 +41,7 @@ class HealthCheckServer:
     async def health_handler(self, request: web.Request) -> web.Response:
         health_status = {
             'status': 'healthy',
-            'service': 'golf-scraper',
+            'service': 'golf-parser',
             'timestamp': asyncio.get_event_loop().time()
         }
         
@@ -49,7 +49,7 @@ class HealthCheckServer:
     
     async def metrics_handler(self, request: web.Request) -> web.Response:
         metrics_data = {
-            'service': 'golf-scraper',
+            'service': 'golf-parser',
             'metrics': {
                 'status': 'operational'
             }
@@ -59,9 +59,9 @@ class HealthCheckServer:
     
     async def root_handler(self, request: web.Request) -> web.Response:
         service_info = {
-            'service': 'Golf Scraper',
+            'service': 'Golf Parser',
             'version': '1.0.0',
-            'description': 'Masters Tournament data scraper',
+            'description': 'Masters Tournament data parser',
             'endpoints': {
                 'health': '/health',
                 'metrics': '/metrics'
