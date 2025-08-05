@@ -10,6 +10,7 @@ from services.config import Config
 from services.logger import setup_logging
 from services.health_check import HealthCheckServer
 from services.entrilist import EntrylistFetcher
+from services.leaderboard import LeaderboardFetcher
 # from datadog_setup import setup_datadog 
 
 logger = logging.getLogger(__name__)
@@ -35,6 +36,7 @@ class GolfParserApp:
 
             self.running = True
             EntrylistFetcher().process()
+            LeaderboardFetcher().process()
             
         except Exception as e:
             logger.error(f"Failed to start application: {e}")
