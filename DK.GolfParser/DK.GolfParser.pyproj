@@ -22,14 +22,19 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="DK.GolfParser.py" />
-    <Compile Include="Services\BaseFetcher.py" />
-    <Compile Include="Services\TeetimesFetcher.py" />
-    <Compile Include="Services\EntrylistFetcher.py" />
+    <Compile Include="Services\__init__.py" />
+    <Compile Include="Services\api_client.py" />
     <Compile Include="Services\config.py" />
+    <Compile Include="Services\data_processors.py" />
+    <Compile Include="Services\entrylist.py" />
     <Compile Include="Services\health_check.py" />
     <Compile Include="Services\leaderboard.py" />
     <Compile Include="Services\logger.py" />
-    <Compile Include="Services\__init__.py" />
+    <Compile Include="Services\metrics.py" />
+    <Compile Include="Services\rabbitmq_client.py" />
+    <Compile Include="Services\scraper.py" />
+    <Compile Include="Services\shots.py" />
+    <Compile Include="Services\teetimes.py" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Services\" />
