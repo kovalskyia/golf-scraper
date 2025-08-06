@@ -22,7 +22,7 @@ services:
     image: datadog/agent:latest
     container_name: golf-parser-datadog
     environment:
-      - DD_API_KEY=${DD_API_KEY:-your_api_key_here}
+      - DD_API_KEY=267f6ba0c45b649b27d5e657121a67c46ff0f7dc
       - DD_APM_ENABLED=true
       - DD_APM_NON_LOCAL_TRAFFIC=true
       - DD_LOGS_ENABLED=true
