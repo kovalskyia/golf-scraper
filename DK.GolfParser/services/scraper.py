@@ -1,5 +1,4 @@
 import asyncio
-import time
 import structlog
 
 from services.config import Config
@@ -64,11 +63,11 @@ class Scraper:
                 logger.info("Completed scraping cycle")
 
                 # Wait for next cycle
-                time.sleep(self.config.scrape_interval)
+                await asyncio.sleep(self.config.scrape_interval)
 
             except Exception as e:
                 logger.error("Error in scraping loop", error=str(e))
-                time.sleep(60)  # Wait before retrying
+                await asyncio.sleep(60)  # Wait before retrying
 
     async def _scrape_entrylist(self) -> None:
         await self.entrylist_fetcher.start()

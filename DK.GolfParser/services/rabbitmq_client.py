@@ -85,22 +85,40 @@ class RabbitMQClient:
             )
             return False
 
+    async def publish_endpoint(
+        self, topic_key: str, data: Dict[str, Any], **kwargs
+    ) -> bool:
+        if topic_key not in self.config.topics:
+            logger.error(f"Unknown topic config key: {topic_key}")
+            return False
+
+        topic = self.config.topics[topic_key]
+        if kwargs:
+            try:
+                topic = topic.format(**kwargs)
+            except KeyError as e:
+                logger.error(f"Missing required parameter for topic {topic_key}: {e}")
+                return False
+
+        # Extract player_id from data if available, otherwise from kwargs
+        player_id = kwargs.get("player_id") or data.get("player_id")
+
+        return await self.publish_message(topic, data, player_id)
+
     async def publish_entrylist(self, player_data: Dict[str, Any]) -> bool:
-        topic = self.config.topics["entrylist"].format(
-            player_id=player_data["player_id"]
+        return await self.publish_endpoint(
+            "entrylist", player_data, player_id=player_data["player_id"]
         )
-        return await self.publish_message(topic, player_data, player_data["player_id"])
 
     async def publish_teetimes(self, player_data: Dict[str, Any]) -> bool:
-        topic = self.config.topics["teetimes"].format(
-            player_id=player_data["player_id"]
+        return await self.publish_endpoint(
+            "teetimes", player_data, player_id=player_data["player_id"]
         )
-        return await self.publish_message(topic, player_data, player_data["player_id"])
 
     async def publish_leaderboard(self, leaderboard_data: list) -> bool:
-        topic = self.config.topics["leaderboard"]
-        return await self.publish_message(topic, {"players": leaderboard_data})
+        return await self.publish_endpoint("leaderboard", {"players": leaderboard_data})
 
     async def publish_shots(self, shots_data: Dict[str, Any]) -> bool:
-        topic = self.config.topics["shots"].format(player_id=shots_data["player_id"])
-        return await self.publish_message(topic, shots_data, shots_data["player_id"])
+        return await self.publish_endpoint(
+            "shots", shots_data, player_id=shots_data["player_id"]
+        )

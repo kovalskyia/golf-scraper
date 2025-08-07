@@ -18,16 +18,20 @@ class EntrylistFetcher:
             async with APIClient(self.config) as api_client:
                 raw_data = await api_client.fetch_entrylist()
 
-                if raw_data:
-                    processed_players = DataProcessor.process_entrylist(raw_data)
+                if raw_data is None:
+                    logger.error("Failed to fetch entrylist data - API returned None")
+                    raise Exception("Failed to fetch entrylist data")
 
-                    for player in processed_players:
-                        success = await self.rabbitmq_client.publish_entrylist(player)
-                        if not success:
-                            logger.error(
-                                "Failed to publish entrylist",
-                                player_id=player["player_id"],
-                            )
+                processed_players = DataProcessor.process_entrylist(raw_data)
+
+                for player in processed_players:
+                    success = await self.rabbitmq_client.publish_entrylist(player)
+                    if not success:
+                        logger.error(
+                            "Failed to publish entrylist",
+                            player_id=player["player_id"],
+                        )
 
         except Exception as e:
             logger.error("Error scraping entrylist", error=str(e))
+            raise

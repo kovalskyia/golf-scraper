@@ -81,20 +81,46 @@ class APIClient:
                 )
 
             if attempt < retries:
-                await asyncio.sleep(2**attempt)  # Exponential backoff
+                sleep_duration = 2**attempt  # Exponential backoff
+                logger.info(
+                    "Retrying request",
+                    endpoint=endpoint,
+                    attempt=attempt + 1,
+                    sleep_duration=sleep_duration,
+                    total_retries=retries,
+                )
+                await asyncio.sleep(sleep_duration)
 
         logger.error("Failed to fetch data after all retries", endpoint=endpoint)
         return None
 
+    async def fetch_endpoint(
+        self, config_key: str, **kwargs
+    ) -> Optional[Dict[str, Any]]:
+        if config_key not in self.config.endpoints:
+            logger.error(f"Unknown endpoint config key: {config_key}")
+            return None
+
+        endpoint = self.config.endpoints[config_key]
+        if kwargs:
+            try:
+                endpoint = endpoint.format(**kwargs)
+            except KeyError as e:
+                logger.error(
+                    f"Missing required parameter for endpoint {config_key}: {e}"
+                )
+                return None
+
+        return await self.fetch_data(endpoint)
+
     async def fetch_entrylist(self) -> Optional[Dict[str, Any]]:
-        return await self.fetch_data(self.config.endpoints["entrylist"])
+        return await self.fetch_endpoint("entrylist")
 
     async def fetch_teetimes(self) -> Optional[Dict[str, Any]]:
-        return await self.fetch_data(self.config.endpoints["teetimes"])
+        return await self.fetch_endpoint("teetimes")
 
     async def fetch_leaderboard(self) -> Optional[Dict[str, Any]]:
-        return await self.fetch_data(self.config.endpoints["leaderboard"])
+        return await self.fetch_endpoint("leaderboard")
 
     async def fetch_shots(self, player_id: str) -> Optional[Dict[str, Any]]:
-        endpoint = self.config.endpoints["shots"].format(player_id=player_id)
-        return await self.fetch_data(endpoint)
+        return await self.fetch_endpoint("shots", player_id=player_id)

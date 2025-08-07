@@ -1,9 +1,9 @@
 import time
+import os
 import structlog
-
+from datadog import initialize, statsd
 from contextlib import contextmanager
 from typing import Dict, Optional
-
 
 logger = structlog.get_logger(__name__)
 
@@ -11,48 +11,67 @@ logger = structlog.get_logger(__name__)
 class MetricsCollector:
 
     def __init__(self):
-        self.metrics = {}
+        # Initialize Datadog statsd
+        # Use environment variables for configuration
+        datadog_config = {
+            "statsd_host": os.getenv("DD_AGENT_HOST", "localhost"),
+            "statsd_port": int(os.getenv("DD_DOGSTATSD_PORT", 8125)),
+            "statsd_constant_tags": [
+                f"service:golf-parser",
+                f"env:{os.getenv('DD_ENV', 'development')}",
+            ],
+        }
+        initialize(**datadog_config)
 
     def increment_counter(
         self, metric_name: str, value: int = 1, tags: Optional[Dict[str, str]] = None
     ):
         tags = tags or {}
-        tag_str = ",".join([f"{k}:{v}" for k, v in tags.items()])
+        tag_list = [f"{k}:{v}" for k, v in tags.items()]
 
+        statsd.increment(metric_name, value, tags=tag_list)
+
+        # Also log for debugging
         logger.info(
             "metric",
             metric_name=metric_name,
             value=value,
             metric_type="counter",
-            tags=tag_str,
+            tags=tag_list,
         )
 
     def record_gauge(
         self, metric_name: str, value: float, tags: Optional[Dict[str, str]] = None
     ):
         tags = tags or {}
-        tag_str = ",".join([f"{k}:{v}" for k, v in tags.items()])
+        tag_list = [f"{k}:{v}" for k, v in tags.items()]
 
+        statsd.gauge(metric_name, value, tags=tag_list)
+
+        # Also log for debugging
         logger.info(
             "metric",
             metric_name=metric_name,
             value=value,
             metric_type="gauge",
-            tags=tag_str,
+            tags=tag_list,
         )
 
     def record_histogram(
         self, metric_name: str, value: float, tags: Optional[Dict[str, str]] = None
     ):
         tags = tags or {}
-        tag_str = ",".join([f"{k}:{v}" for k, v in tags.items()])
+        tag_list = [f"{k}:{v}" for k, v in tags.items()]
 
+        statsd.histogram(metric_name, value, tags=tag_list)
+
+        # Also log for debugging
         logger.info(
             "metric",
             metric_name=metric_name,
             value=value,
             metric_type="histogram",
-            tags=tag_str,
+            tags=tag_list,
         )
 
     @contextmanager
@@ -99,6 +118,14 @@ class MetricsCollector:
             "golf_scraper.shots_per_hole",
             shot_count,
             {"round": str(round_num), "hole": str(hole_num)},
+        )
+
+    def record_health_check(self, status: str, component: str = "overall"):
+        status_value = 1 if status == "healthy" else 0
+        self.record_gauge(
+            "golf_scraper.health_status",
+            status_value,
+            {"component": component, "status": status},
         )
 
 

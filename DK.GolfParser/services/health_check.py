@@ -1,8 +1,10 @@
 import asyncio
 import structlog
 import socket
+import time
 
 from aiohttp import web
+from services.metrics import metrics
 
 logger = structlog.get_logger(__name__)
 
@@ -13,6 +15,7 @@ class HealthCheckServer:
         self.app = web.Application()
         self.runner = None
         self.site = None
+        self.start_time = time.time()
 
         # Setup routes
         self.app.router.add_get("/health", self.health_handler)
@@ -49,8 +52,12 @@ class HealthCheckServer:
 
             logger.info("Health check server started", port=actual_port)
 
+            # Record health check startup as metric
+            metrics.record_health_check("healthy", "health_check_server")
+
         except Exception as e:
             logger.error("Failed to start health check server", error=str(e))
+            metrics.record_health_check("unhealthy", "health_check_server")
             raise
 
     async def shutdown(self) -> None:
@@ -59,20 +66,44 @@ class HealthCheckServer:
             logger.info("Health check server shutdown complete")
 
     async def health_handler(self, request: web.Request) -> web.Response:
+        # Calculate uptime
+        uptime = time.time() - self.start_time
+
         health_status = {
             "status": "healthy",
             "service": "golf-parser",
             "timestamp": asyncio.get_event_loop().time(),
+            "uptime_seconds": uptime,
         }
+
+        # Record health check as metric
+        metrics.record_health_check("healthy", "overall")
+        metrics.record_gauge("golf_scraper.uptime_seconds", uptime)
 
         return web.json_response(health_status, status=200)
 
     async def metrics_handler(self, request: web.Request) -> web.Response:
-        metrics_data = {"service": "golf-parser", "metrics": {"status": "operational"}}
+        # Record metrics endpoint access
+        metrics.increment_counter(
+            "golf_scraper.health_check_requests", tags={"endpoint": "metrics"}
+        )
+
+        metrics_data = {
+            "service": "golf-parser",
+            "metrics": {
+                "status": "operational",
+                "uptime_seconds": time.time() - self.start_time,
+            },
+        }
 
         return web.json_response(metrics_data, status=200)
 
     async def root_handler(self, request: web.Request) -> web.Response:
+        # Record root endpoint access
+        metrics.increment_counter(
+            "golf_scraper.health_check_requests", tags={"endpoint": "root"}
+        )
+
         service_info = {
             "service": "Golf Parser",
             "version": "1.0.0",

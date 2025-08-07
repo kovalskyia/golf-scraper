@@ -14,8 +14,18 @@ class DataProcessor:
             processed_players = []
 
             for player in raw_data.get("players", []):
+                player_id = str(player.get("id", "")).strip()
+
+                # Skip players without a valid ID
+                if not player_id:
+                    logger.warning(
+                        "Skipping player without valid ID",
+                        player_name=player.get("name", "Unknown"),
+                    )
+                    continue
+
                 processed_player = {
-                    "player_id": str(player.get("id", "")),
+                    "player_id": player_id,
                     "name": player.get("name", ""),
                     "country_code": player.get("countryCode", ""),
                     "is_amateur": bool(player.get("amateur", False)),
@@ -40,7 +50,15 @@ class DataProcessor:
                 if round_key in raw_data:
                     for group in raw_data[round_key].get("groups", []):
                         for player in group.get("players", []):
-                            player_id = str(player.get("id", ""))
+                            player_id = str(player.get("id", "")).strip()
+
+                            # Skip players without a valid ID
+                            if not player_id:
+                                logger.warning(
+                                    "Skipping player without valid ID in tee times",
+                                    player_name=player.get("name", "Unknown"),
+                                )
+                                continue
 
                             # Find existing player or create new one
                             existing_player = next(
@@ -83,9 +101,21 @@ class DataProcessor:
             processed_players = []
 
             for player in raw_data.get("players", []):
+                player_id = str(player.get("id", "")).strip()
+
+                # Skip players without a valid ID
+                if not player_id:
+                    logger.warning(
+                        "Skipping player without valid ID in leaderboard",
+                        player_name=player.get("name", "Unknown"),
+                    )
+                    continue
+
                 processed_player = {
-                    "player_id": str(player.get("id", "")),
-                    "current_position": int(player.get("pos", 0)),
+                    "player_id": player_id,
+                    "current_position": DataProcessor._process_position(
+                        player.get("pos", 0)
+                    ),
                     "round_score": int(player.get("today", 0)),
                     "thru": DataProcessor._process_thru(player.get("thru", "")),
                     "total": int(player.get("topar", 0)),
@@ -132,13 +162,7 @@ class DataProcessor:
                         # Determine surface based on remaining distance and ongreen flag
                         remaining = float(shot_data.get("remaining", 0.0))
                         ongreen = shot_data.get("ongreen", False)
-
-                        if remaining == 0.0:
-                            surface = "hole"
-                        elif ongreen:
-                            surface = "green"
-                        else:
-                            surface = "unknown"
+                        surface = DataProcessor._get_surface(remaining, ongreen)
 
                         processed_shots[round_num][hole_num][shot_num] = {
                             "date": shot_data.get("date", ""),
@@ -163,6 +187,37 @@ class DataProcessor:
                 "Failed to process shots data", player_id=player_id, error=str(e)
             )
             raise
+
+    @staticmethod
+    def _process_position(position_value: Any) -> int:
+        if isinstance(position_value, str):
+            # Handle tied positions like "T2" by stripping "T" and converting to int
+            if position_value.startswith("T"):
+                try:
+                    return int(position_value[1:])
+                except ValueError:
+                    logger.warning(f"Invalid tied position format: {position_value}")
+                    return 0
+            else:
+                try:
+                    return int(position_value)
+                except ValueError:
+                    logger.warning(f"Invalid position format: {position_value}")
+                    return 0
+        else:
+            try:
+                return int(position_value)
+            except (ValueError, TypeError):
+                return 0
+
+    @staticmethod
+    def _get_surface(remaining_distance: float, ongreen: bool) -> str:
+        if remaining_distance == 0.0:
+            return "hole"
+        elif ongreen:
+            return "green"
+        else:
+            return "unknown"
 
     @staticmethod
     def _process_thru(thru_value: str) -> int:

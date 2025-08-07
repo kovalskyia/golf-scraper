@@ -48,7 +48,10 @@ services:
       - RABBITMQ_USER=admin
       - RABBITMQ_PASSWORD=admin123
       - DD_AGENT_HOST=datadog-agent
-      - DD_AGENT_PORT=8126
+      - DD_DOGSTATSD_PORT=8125
+      - DD_ENV=development
+      - DD_SERVICE=golf-parser
+      - DD_VERSION=1.0.0
       - LOG_LEVEL=INFO
     ports:
       - "8000:8000"

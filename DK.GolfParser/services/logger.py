@@ -1,6 +1,4 @@
 import logging
-import logging.handlers
-import os
 import sys
 
 import structlog
@@ -26,27 +24,12 @@ def setup_logging(log_level: str = "INFO") -> None:
         cache_logger_on_first_use=True,
     )
 
-    # Setup standard library logging
+    # Setup standard library logging to stdout for Datadog agent capture
     logging.basicConfig(
         format="%(message)s",
         stream=sys.stdout,
         level=getattr(logging, log_level.upper()),
     )
-
-    # Create logs directory if it doesn't exist
-    os.makedirs("logs", exist_ok=True)
-
-    # Add file handler for persistent logs
-    file_handler = logging.handlers.RotatingFileHandler(
-        "logs/golf-parser.log", maxBytes=10 * 1024 * 1024, backupCount=5  # 10MB
-    )
-    file_handler.setFormatter(
-        logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-    )
-
-    # Get root logger and add file handler
-    root_logger = logging.getLogger()
-    root_logger.addHandler(file_handler)
 
     # Set specific loggers
     logging.getLogger("aio_pika").setLevel(logging.WARNING)
