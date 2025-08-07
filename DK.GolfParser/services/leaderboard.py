@@ -18,14 +18,17 @@ class LeaderboardFetcher:
             async with APIClient(self.config) as api_client:
                 raw_data = await api_client.fetch_leaderboard()
 
-                if raw_data:
-                    processed_players = DataProcessor.process_leaderboard(raw_data)
-                    success = await self.rabbitmq_client.publish_leaderboard(
-                        processed_players
-                    )
+                if raw_data is None:
+                    logger.error("Failed to fetch leaderboard data - API returned None")
+                    raise Exception("Failed to fetch leaderboard data")
 
-                    if not success:
-                        logger.error("Failed to publish leaderboard")
+                processed_players = DataProcessor.process_leaderboard(raw_data)
+                success = await self.rabbitmq_client.publish_leaderboard(
+                    processed_players
+                )
+
+                if not success:
+                    logger.error("Failed to publish leaderboard")
 
         except Exception as e:
             logger.error("Error scraping leaderboard", error=str(e))

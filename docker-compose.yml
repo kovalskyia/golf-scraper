@@ -5,8 +5,8 @@ services:
     image: rabbitmq:3-management
     container_name: golf-parser-rabbitmq
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "15672:15672"  # Web UI
+      - "5672:5672"    # AMQP
     environment:
       RABBITMQ_DEFAULT_USER: admin
       RABBITMQ_DEFAULT_PASS: admin123
@@ -17,27 +17,28 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+    networks:
+      - monitoring
 
   datadog-agent:
     image: datadog/agent:latest
     container_name: golf-parser-datadog
     environment:
-      - DD_API_KEY=267f6ba0c45b649b27d5e657121a67c46ff0f7dc
+      - DD_API_KEY=13a5d2dcdf89c3f17a4c10c9e4446e72
+      - DD_SITE=datadoghq.eu
       - DD_APM_ENABLED=true
-      - DD_APM_NON_LOCAL_TRAFFIC=true
       - DD_LOGS_ENABLED=true
-      - DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true
+      - DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true
+      - DD_COLLECT_DOCKER_METRICS=true
       - DD_CONTAINER_EXCLUDE="name:datadog-agent"
-      - DD_PROCESS_AGENT_ENABLED=true
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /proc/:/host/proc/:ro
-      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true
     ports:
-      - "8126:8126"
-    depends_on:
-      - rabbitmq
+      - "8125:8125/udp"  # DogStatsD
+      - "8126:8126"      # APM (traces)
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro  # For container monitoring
+    networks:
+      - monitoring
 
   golf-parser:
     build: .
@@ -63,6 +64,11 @@ services:
     volumes:
       - ./logs:/app/logs
     restart: unless-stopped
+    networks:
+      - monitoring
 
 volumes:
   rabbitmq_data: 
+
+networks:
+  monitoring:

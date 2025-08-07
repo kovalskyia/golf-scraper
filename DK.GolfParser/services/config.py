@@ -10,11 +10,6 @@ class Config:
         self.rabbitmq_password = os.getenv("RABBITMQ_PASSWORD", "admin123")
         self.rabbitmq_vhost = os.getenv("RABBITMQ_VHOST", "/")
 
-        # # Datadog Configuration
-        self.dd_agent_host = os.getenv("DD_AGENT_HOST", "localhost")
-        self.dd_agent_port = int(os.getenv("DD_AGENT_PORT", "8126"))
-        self.dd_api_key = os.getenv("DD_API_KEY", "")
-
         # Application Configuration
         self.log_level = os.getenv("LOG_LEVEL", "INFO")
         self.health_port = int(os.getenv("HEALTH_PORT", "8000"))
