@@ -35,6 +35,10 @@ class GolfParserApp:
             # Start scraper
             self.running = True
             await self.scraper.start()
+            
+            # Keep the application running
+            while self.running:
+                await asyncio.sleep(1)
 
         except Exception as e:
             logger.error(f"Failed to start application: {e}")

@@ -31,8 +31,8 @@ class Scraper:
 
             # Start scraping loop
             self.running = True
-            # self._scrape_task = asyncio.create_task(self._scrape_loop())
-            await self._scrape_loop()
+            self._scrape_task = asyncio.create_task(self._scrape_loop())
+            # await self._scrape_loop()
 
             logger.info("Scraper service started successfully")
 
