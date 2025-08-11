@@ -48,8 +48,8 @@ class DataProcessor:
             for round_num in ["1", "2", "3", "4"]:
                 round_key = f"round{round_num}"
                 if round_key in raw_data:
-                    for group in raw_data[round_key].get("groups", []):
-                        for player in group.get("players", []):
+                    for group in raw_data[round_key].get("group", []):
+                        for player in group.get("player", []):
                             player_id = str(player.get("id", "")).strip()
 
                             # Skip players without a valid ID
@@ -79,7 +79,7 @@ class DataProcessor:
 
                             # Add tee time for this round
                             existing_player["teetimes"][round_num] = {
-                                "time": group.get("teetime", ""),
+                                "time": group.get("time", ""),
                                 "group_id": str(group.get("number", "")),
                                 "starting_hole": int(group.get("tee", 1)),
                                 "order_of_play_within_group": int(
