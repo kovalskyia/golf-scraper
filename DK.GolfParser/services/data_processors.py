@@ -99,8 +99,9 @@ class DataProcessor:
     def process_leaderboard(raw_data: Dict[str, Any]) -> List[Dict[str, Any]]:
         try:
             processed_players = []
+            data = raw_data.get("data", [])
 
-            for player in raw_data.get("players", []):
+            for player in data.get("player", []):
                 player_id = str(player.get("id", "")).strip()
 
                 # Skip players without a valid ID
@@ -116,9 +117,9 @@ class DataProcessor:
                     "current_position": DataProcessor._process_position(
                         player.get("pos", 0)
                     ),
-                    "round_score": int(player.get("today", 0)),
-                    "thru": DataProcessor._process_thru(player.get("thru", "")),
-                    "total": int(player.get("topar", 0)),
+                    "round_score": player.get("today", 0),
+                    "thru": DataProcessor._process_thru(player.get("thru", 0)),
+                    "total": player.get("topar", 0),
                     "round_strokes": {},
                 }
 
@@ -126,9 +127,8 @@ class DataProcessor:
                 for round_num in ["1", "2", "3", "4"]:
                     round_key = f"round{round_num}"
                     if round_key in player:
-                        processed_player["round_strokes"][round_num] = int(
-                            player[round_key].get("total", 0)
-                        )
+                        total = player[round_key].get("total", 0)
+                        processed_player["round_strokes"][round_num] = int(total) if total is not None else 0
 
                 processed_players.append(processed_player)
 
@@ -147,16 +147,16 @@ class DataProcessor:
         try:
             processed_shots = {"player_id": player_id}
 
-            for round_data in raw_data.get("rounds", []):
+            for round_data in raw_data.get("round", []):
                 round_num = str(round_data.get("id", ""))
                 processed_shots[round_num] = {}
 
-                for hole_data in round_data.get("holes", []):
+                for hole_data in round_data.get("hole", []):
                     hole_num = str(hole_data.get("id", ""))
                     processed_shots[round_num][hole_num] = {}
 
                     shot_count = 0
-                    for shot_data in hole_data.get("shots", []):
+                    for shot_data in hole_data.get("shot", []):
                         shot_num = str(shot_data.get("num", ""))
 
                         # Determine surface based on remaining distance and ongreen flag
@@ -221,7 +221,7 @@ class DataProcessor:
 
     @staticmethod
     def _process_thru(thru_value: str) -> int:
-        if thru_value == "f":
+        if isinstance(thru_value, str) and thru_value.lower() == "f":
             return 18
         try:
             return int(thru_value)
